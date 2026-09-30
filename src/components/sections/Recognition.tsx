@@ -28,7 +28,7 @@ export function Recognition() {
                         <BadgeCheck size={18} strokeWidth={1.75} />
                       </span>
                     </div>
-                    <div className="flex items-end justify-between gap-4">
+                    <div className="flex flex-wrap items-end justify-between gap-4">
                       <p className="type-label text-[12px] break-all text-muted">
                         ID <span className="text-text">{c.credentialId}</span>
                       </p>

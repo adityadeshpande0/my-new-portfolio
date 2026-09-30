@@ -14,6 +14,12 @@ All build phases from `CLAUDE.md` §11 are in place, to a first-pass level:
 8. **Polish**: metadata, dynamic OG image, sitemap, robots, JSON-LD `Person`, skip link, focus rings, Playwright smoke tests (desktop + mobile).
 9. **Deploy**: README setup instructions and `.env.example`. Vercel works with zero config.
 
+## Done (session 2): responsive pass
+
+- Checked at 320, 360, 375, 390, 768, 844×390 (landscape), 1024, 1280, 1920 and 2560 widths.
+- Fixed: sideways scroll on phones, hero overflowing on landscape phones, cramped top of the hero on small phones, a stray arrow next to CTA buttons, the project filters wrapping on phones (now a swipeable row), cramped two-column projects on tablets (now one column), About stacking on tablets (now side by side from 768px), small UI on large monitors (now scales up), plus narrow-phone tweaks to skills, certificate cards, the contact email and the mobile menu.
+- Added `e2e/responsive.spec.ts`: no horizontal scroll and the hero name fully on screen at 8 sizes, with real mobile emulation for phones and tablets.
+
 ## Next
 
 - Run Lighthouse on a real deployment (mobile) and tune any score below 90.

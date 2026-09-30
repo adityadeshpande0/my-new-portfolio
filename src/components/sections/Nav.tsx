@@ -110,7 +110,7 @@ export function Nav() {
             role="dialog"
             aria-modal="true"
             aria-label="Menu"
-            className="fixed inset-0 z-40 flex flex-col justify-between bg-bg px-[var(--gutter)] pt-28 pb-10 lg:hidden"
+            className="fixed inset-0 z-40 flex flex-col justify-between gap-10 overflow-y-auto bg-bg px-[var(--gutter)] pt-28 pb-10 lg:hidden short:pt-20 short:pb-6"
             initial={{ clipPath: "circle(0% at calc(100% - 42px) 32px)" }}
             animate={{ clipPath: "circle(150% at calc(100% - 42px) 32px)" }}
             exit={{ clipPath: "circle(0% at calc(100% - 42px) 32px)" }}

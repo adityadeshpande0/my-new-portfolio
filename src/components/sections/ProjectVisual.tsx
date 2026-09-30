@@ -24,8 +24,8 @@ export function ProjectVisual({ motif, className }: ProjectVisualProps) {
           <Primary motif={motif} />
         </div>
       </div>
-      <div className="absolute -right-3 -bottom-6 w-[46%] overflow-hidden rounded-[20px] border border-line-strong bg-bg shadow-[0_30px_60px_-20px_rgba(0,0,0,0.8)] transition-transform duration-700 ease-out-expo group-hover:-translate-y-2 group-hover:rotate-[-2deg] sm:-right-6">
-        <div className="aspect-[4/3] p-4">
+      <div className="absolute -right-2 -bottom-6 w-[50%] overflow-hidden rounded-[20px] border border-line-strong bg-bg shadow-[0_30px_60px_-20px_rgba(0,0,0,0.8)] transition-transform duration-700 ease-out-expo group-hover:-translate-y-2 group-hover:rotate-[-2deg] sm:-right-6 sm:w-[46%]">
+        <div className="aspect-[4/3] p-3 sm:p-4">
           <Secondary motif={motif} />
         </div>
       </div>
@@ -169,7 +169,7 @@ function Secondary({ motif }: { motif: Project["motif"] }) {
     chat: ["stream: true", "model: gpt", "tokens ▸▸▸", "200 OK"],
   };
   return (
-    <div className="type-label flex h-full flex-col justify-center gap-1 text-[10px] leading-tight sm:text-[11px]">
+    <div className="type-label flex h-full min-w-0 flex-col justify-center gap-1 text-[9px] leading-tight whitespace-nowrap sm:text-[11px] lg:text-[11px] md:text-[13px] [&>span]:truncate">
       {lines[motif].map((l, i) => (
         <span key={l} className={i === 1 ? "text-accent" : "text-muted"}>
           {l}

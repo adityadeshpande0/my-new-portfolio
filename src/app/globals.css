@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Short viewports: landscape phones, small laptops with toolbars. */
+@custom-variant short (@media (max-height: 560px));
+
 /* ------------------------------------------------------------------ */
 /*  Design tokens — "Engineered Warmth"                                */
 /* ------------------------------------------------------------------ */
@@ -19,7 +22,8 @@
   --radius-card: 28px;
   --radius-pill: 999px;
 
-  --container: 1200px;
+  /* rem-based so the whole layout scales with the root size on large screens. */
+  --container: 75rem;
   --gutter: clamp(20px, 4vw, 48px);
   --section-gap: clamp(96px, 14vw, 180px);
 
@@ -60,6 +64,7 @@
 @layer base {
   html {
     background: var(--bg);
+    overflow-x: clip;
     -webkit-text-size-adjust: 100%;
   }
 
@@ -67,7 +72,7 @@
     background: var(--bg);
     color: var(--text);
     font-family: var(--font-inter), system-ui, sans-serif;
-    font-size: 17px;
+    font-size: 1.0625rem;
     line-height: 1.6;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
@@ -99,7 +104,8 @@
   .type-display {
     font-family: var(--font-jetbrains), ui-monospace, monospace;
     font-weight: 700;
-    font-size: clamp(44px, 8vw, 104px);
+    /* Capped by height too, so the name fits on landscape phones. */
+    font-size: min(clamp(40px, 8vw, 104px), 17svh);
     line-height: 0.95;
     letter-spacing: -0.045em;
   }
@@ -114,7 +120,7 @@
 
   .type-label {
     font-family: var(--font-jetbrains), ui-monospace, monospace;
-    font-size: 13px;
+    font-size: 0.8125rem;
     letter-spacing: 0.01em;
   }
 
@@ -170,5 +176,40 @@ html.lenis body {
 
 /* Preloader is skipped before first paint on repeat visits / reduced motion. */
 html[data-intro="seen"] .preloader {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Large screens: scale type and spacing (Tailwind sizes are rem).    */
+/* ------------------------------------------------------------------ */
+@media (min-width: 1600px) {
+  html {
+    font-size: 106.25%;
+  }
+  :root {
+    --container: 80rem;
+  }
+  .type-display {
+    font-size: clamp(104px, 6.6vw, 150px);
+  }
+  .type-h2 {
+    font-size: clamp(56px, 3.6vw, 76px);
+  }
+}
+
+@media (min-width: 2200px) {
+  html {
+    font-size: 118.75%;
+  }
+  :root {
+    --container: 82rem;
+  }
+}
+
+/* Horizontal scroller without a visible scrollbar (filters on mobile). */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
   display: none;
 }

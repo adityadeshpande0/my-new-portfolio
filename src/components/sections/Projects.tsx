@@ -26,7 +26,11 @@ export function Projects() {
         <div className="flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
           <SectionHeading id="projects" index={4} label="Projects" title="Selected work." className="lg:mb-16" />
           <LayoutGroup id="project-filters">
-            <div role="group" aria-label="Filter projects" className="mb-12 flex flex-wrap gap-1.5 lg:mb-16">
+            <div
+              role="group"
+              aria-label="Filter projects"
+              className="no-scrollbar -mx-[var(--gutter)] mb-12 flex gap-1.5 overflow-x-auto px-[var(--gutter)] lg:mx-0 lg:mb-16 lg:flex-wrap lg:overflow-visible lg:px-0"
+            >
               {projectFilters.map((f) => {
                 const selected = f === filter;
                 return (
@@ -36,7 +40,7 @@ export function Projects() {
                     aria-pressed={selected}
                     onClick={() => setFilter(f)}
                     className={cn(
-                      "type-label relative h-9 rounded-pill px-4 transition-colors duration-300",
+                      "type-label relative h-9 shrink-0 rounded-pill px-4 whitespace-nowrap transition-colors duration-300",
                       selected ? "text-text-inverse" : "text-muted hover:text-text",
                     )}
                   >
@@ -55,7 +59,7 @@ export function Projects() {
           </LayoutGroup>
         </div>
 
-        <m.ul layout className="grid gap-x-10 gap-y-20 lg:gap-x-16 lg:gap-y-28 md:grid-cols-2">
+        <m.ul layout className="grid gap-x-16 gap-y-20 sm:gap-y-24 lg:grid-cols-2 lg:gap-y-28">
           <AnimatePresence mode="popLayout" initial={false}>
             {visible.map((p, i) => (
               <m.li
@@ -65,7 +69,11 @@ export function Projects() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.96 }}
                 transition={{ duration: 0.6, ease: EASE_OUT }}
-                className={cn(i % 2 === 1 && filter === "All" && "md:mt-28")}
+                className={cn(
+                  "w-full lg:max-w-none md:max-w-[40rem]",
+                  i % 2 === 1 && "lg:ml-0 md:ml-auto",
+                  i % 2 === 1 && filter === "All" && "lg:mt-28",
+                )}
               >
                 <Reveal>
                   <article className="group relative">

@@ -14,17 +14,17 @@ export function About() {
     <section id="about" aria-labelledby="about-title" className="section overflow-hidden">
       <Arc size={720} className="top-24 -left-[420px]" />
       <Container>
-        <div className="grid gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:gap-20">
-          <Parallax offset={30} className="order-2 mx-auto w-full max-w-[480px] lg:order-1">
+        <div className="grid gap-12 lg:gap-20 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] md:gap-12">
+          <Parallax offset={30} className="order-2 mx-auto w-full max-w-[480px] md:order-1 md:self-center">
             <Reveal>
               <Portrait />
             </Reveal>
           </Parallax>
 
-          <div className="order-1 flex flex-col justify-center lg:order-2">
+          <div className="order-1 flex flex-col justify-center md:order-2">
             <SectionHeading id="about" index={1} label="About me" title="Engineer, by way of systems." />
             <Reveal delay={0.1}>
-              <p className="max-w-[38rem] text-lg leading-relaxed text-muted">
+              <p className="max-w-[38rem] text-base leading-relaxed text-muted sm:text-lg">
                 <Emphasis text={profile.about} />
               </p>
             </Reveal>
