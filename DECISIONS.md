@@ -19,3 +19,7 @@ Choices not covered by `CLAUDE.md`, and places where the implementation delibera
 | 13 | Section headings ("Where I've shipped.", etc.) are written in components. | They are UI copy, not resume content. All resume data lives in `src/content/`. |
 | 14 | The ArrowButton next to a pill (and on project cards) is `aria-hidden` and not focusable. | It points to the same URL as its sibling link, so keyboard and screen-reader users get one stop, not two. |
 | 15 | The Microsoft certification icon is lucide `BadgeCheck`, not the Microsoft logo. | §13: no copyrighted logos beyond standard social/tech icons. |
+| 16 | Layout scales on large screens by raising the root font size (≥1600px: 17px, ≥2200px: 19px) and a rem-based `--container`. | Tailwind v4 sizes and spacing are rem-based, so the whole UI grows proportionally instead of sitting small in a wide frame. |
+| 17 | A `short` variant (`max-height: 560px`) unpins the hero on landscape phones. | A pinned 100svh stage can't fit the hero content in ~390px of height. There the section flows normally and the content is never faded early. |
+| 18 | `html` and the Experience section use `overflow-x: clip`. | On mobile, elements waiting to slide in widened the layout viewport and caused sideways scroll. `e2e/responsive.spec.ts` guards this at phone, tablet and desktop sizes. |
+| 19 | ArrowButton's incoming hover arrow is `opacity-0` until hover. | Chrome painted it outside the circle despite `overflow: hidden` / `clip-path`, inside the transformed magnetic wrapper. |

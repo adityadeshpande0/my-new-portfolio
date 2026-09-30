@@ -12,6 +12,7 @@ import { Emphasis } from "@/components/ui/Emphasis";
 import { SocialPill } from "@/components/ui/SocialPill";
 import { profile, socials } from "@/content/profile";
 import { EASE_OUT, SPRING_SCROLL } from "@/lib/motion";
+import { useMediaQuery } from "@/lib/useMediaQuery";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 
 const ConstellationScene = dynamic(() => import("@/components/three/ConstellationScene"), { ssr: false });
@@ -29,6 +30,8 @@ export function Hero() {
   const ref = useRef<HTMLElement>(null);
   const { done } = useIntro();
   const reduced = useReducedMotion();
+  // Landscape phones: no pinning, content flows normally and is never faded early.
+  const short = useMediaQuery("(max-height: 560px)");
   const { scrollYProgress } = useScroll({ target: ref, offset: ["start start", "end start"] });
   const progress = useSpring(scrollYProgress, SPRING_SCROLL);
   const contentY = useTransform(progress, [0, 0.22], [0, -90]);
@@ -38,8 +41,8 @@ export function Hero() {
   const state = done ? "show" : "hidden";
 
   return (
-    <section ref={ref} id="top" aria-label="Introduction" className="relative h-[210svh]">
-      <div className="sticky top-0 h-svh overflow-hidden">
+    <section ref={ref} id="top" aria-label="Introduction" className="relative h-[210svh] short:h-auto">
+      <div className="sticky top-0 h-svh overflow-hidden short:relative short:h-auto short:min-h-svh">
         <CanvasGate allowMobile>
           {({ tier, active }) => <ConstellationScene progress={progress} visible={done} tier={tier} active={active} />}
         </CanvasGate>
@@ -54,8 +57,8 @@ export function Hero() {
         />
 
         <m.div
-          className="relative z-10 flex h-full items-end pb-[max(96px,14svh)]"
-          style={{ y: contentY, opacity: contentOpacity }}
+          className="relative z-10 flex h-full items-end pt-20 pb-[max(84px,12svh)] short:h-auto short:pt-24 short:pb-14"
+          style={short ? undefined : { y: contentY, opacity: contentOpacity }}
         >
           <Container>
             <m.p
@@ -91,9 +94,9 @@ export function Hero() {
               ))}
             </h1>
 
-            <div className="mt-8 grid gap-8 sm:mt-10 lg:grid-cols-[minmax(0,34rem)_auto] lg:items-end lg:justify-between">
+            <div className="mt-6 grid gap-6 sm:mt-10 sm:gap-8 lg:grid-cols-[minmax(0,34rem)_auto] lg:items-end lg:justify-between">
               <m.p
-                className="max-w-[34rem] text-[17px] leading-relaxed text-muted sm:text-lg"
+                className="max-w-[34rem] text-base leading-relaxed text-muted sm:text-lg"
                 variants={fade}
                 custom={1}
                 initial="hidden"
@@ -123,7 +126,7 @@ export function Hero() {
 
         <m.div
           aria-hidden
-          className="type-label absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-2 text-muted"
+          className="type-label absolute bottom-6 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-2 text-muted [@media(max-height:700px)]:hidden"
           style={{ opacity: hintOpacity }}
         >
           <span>scroll</span>

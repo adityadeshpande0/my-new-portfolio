@@ -15,7 +15,7 @@ export function Experience() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section id="work" aria-labelledby="work-title" className="section">
+    <section id="work" aria-labelledby="work-title" className="section overflow-x-clip">
       <Container>
         <SectionHeading id="work" index={2} label="Work" title="Where I've shipped." />
 
@@ -27,7 +27,7 @@ export function Experience() {
               const panelId = `job-panel-${i}`;
               return (
                 <m.li key={job.company} layout transition={{ duration: 0.6, ease: EASE_OUT }}>
-                  <Reveal x={i % 2 === 0 ? -40 : 40} y={0} delay={i * 0.06}>
+                  <Reveal x={i % 2 === 0 ? -32 : 32} y={0} delay={i * 0.06}>
                     <div
                       className={cn(
                         "overflow-hidden rounded-[22px] border transition-colors duration-500",

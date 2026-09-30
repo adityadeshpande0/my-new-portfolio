@@ -33,7 +33,7 @@ export function Contact() {
                 write to{" "}
                 <a
                   href={`mailto:${profile.email}`}
-                  className="text-text underline decoration-accent/60 underline-offset-4 hover:text-accent"
+                  className="[overflow-wrap:anywhere] text-text underline decoration-accent/60 underline-offset-4 hover:text-accent"
                 >
                   {profile.email}
                 </a>
