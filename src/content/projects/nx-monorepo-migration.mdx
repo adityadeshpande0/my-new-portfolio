@@ -1,0 +1,61 @@
+<MetricRow
+  items={[
+    { value: "1", label: "workspace, many apps" },
+    { value: "∆", label: "affected-only CI" },
+    { value: "↑", label: "shared-code reuse" },
+  ]}
+/>
+
+<Callout label="Anonymised">
+  This is enterprise client work. Names, screens, and exact figures are omitted; the architecture below is a faithful
+  but simplified recreation.
+</Callout>
+
+## Overview
+
+A set of *enterprise React applications* for construction-management workflows had grown up in separate repositories.
+Each app carried its own copy of UI components, API clients and build tooling. I played a key role in moving them into a
+single **Nx monorepo**, so the apps could share code *deliberately* instead of by copy-paste.
+
+## Problem
+
+- Components drifted apart: the same table or form looked and behaved slightly differently in every app.
+- Fixes had to be re-applied in several repos, and often weren't.
+- Each repo had its own lint, test and build config, so CI was slow and inconsistent.
+- Onboarding meant learning several subtly different setups.
+
+## Approach
+
+1. **Map the dependency graph first.** Inventory what each app actually imported, then draw the target boundaries: apps
+   at the edge, libraries for UI, data access, auth and utilities underneath.
+2. **Migrate incrementally.** Move one app at a time into `apps/`, keeping it green in CI before the next one — no
+   big-bang cut-over.
+3. **Extract shared libraries as duplication shows up.** Every time two apps had the same component or hook, it moved
+   into `libs/` with a clear public API.
+4. **Enforce boundaries.** Tag projects (`type:app`, `type:ui`, `type:data-access`) and use Nx module-boundary lint
+   rules so apps can't reach into each other.
+5. **Make CI graph-aware.** Azure DevOps pipelines run `nx affected`, so a change only lints, tests and builds the
+   projects it can actually break.
+
+## Architecture
+
+<ArchitectureDiagram />
+
+## Tech
+
+React · TypeScript · Nx · Material UI · Azure DevOps pipelines · Jest / React Testing Library · SonarQube
+
+## Results
+
+- One place to fix a shared component, and every app picks it up.
+- *Consistent* build, lint and test configuration across all apps.
+- Faster pull-request feedback, because CI skips projects a change can't affect.
+- A foundation for the shared Material UI component library that followed.
+
+## What I learned
+
+- **Boundaries are a product decision.** The hardest part wasn't tooling, it was agreeing what belongs in a shared
+  library versus an app.
+- **Incremental beats heroic.** Migrating one app at a time kept delivery going while the platform changed underneath.
+- **Lint rules are documentation that enforces itself.** Module-boundary tags taught the architecture better than any
+  wiki page.
