@@ -18,7 +18,7 @@ export function Contact() {
       <Arc size={980} className="top-[4%] -right-[360px] hidden lg:block" />
       <Arc size={640} className="top-[18%] -right-[180px] hidden lg:block" sweep={0.3} rotate={150} accent />
       <Container className="relative">
-        <SectionLabel index={6}>Contacts</SectionLabel>
+        <SectionLabel index={7}>Contacts</SectionLabel>
         <div className="mt-6 grid gap-12 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:gap-16">
           <div>
             <RevealText
