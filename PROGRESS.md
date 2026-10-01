@@ -37,7 +37,7 @@ All build phases from `CLAUDE.md` §11 are in place, to a first-pass level:
 
 ## Needs Aditya
 
-- **First article**: `src/content/articles/building-a-cinematic-portfolio-with-nextjs-and-r3f.mdx` was drafted for you in your voice. Edit it, or set `draft: true` / delete it before merging.
+- **First article**: `src/content/articles/building-a-cinematic-portfolio-with-nextjs-and-r3f.mdx` is a draft (`draft: true`) written in your voice. Edit it and set `draft: false` to publish, or delete it. Until an article is published, the home section and `/articles` show a "first article is on its way" message.
 - **Code highlighting** in articles needs a new dependency (e.g. Shiki). Approve it if you want coloured code blocks.
 
 - **Domain**: `aditya.dev` is a placeholder. Set `NEXT_PUBLIC_SITE_URL` to the real URL (it drives canonical URLs, sitemap, OG and JSON-LD).

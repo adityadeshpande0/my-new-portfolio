@@ -1,44 +1,59 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
-const SLUG = "building-a-cinematic-portfolio-with-nextjs-and-r3f";
+/** Slugs of published articles, read from the archive (drafts never appear there in production). */
+async function publishedSlugs(page: Page): Promise<string[]> {
+  await page.goto("/articles");
+  const hrefs = await page
+    .locator("main ol a[href^='/articles/']:not([href^='/articles/tags/']):not([href^='/articles/page/'])")
+    .evaluateAll((els) => els.map((e) => e.getAttribute("href") ?? ""));
+  return [...new Set(hrefs.map((h) => h.replace("/articles/", "")))];
+}
 
 test.describe("articles", () => {
-  test("home page shows the latest articles and links to the archive", async ({ page }) => {
+  test("home page has an Articles section linking to the archive", async ({ page }) => {
     await page.goto("/");
     const section = page.locator("section#articles");
     await expect(section.getByRole("heading", { level: 2, name: "Notes from the work." })).toBeAttached();
-    await expect(section.locator(`a[href="/articles/${SLUG}"]`)).toBeAttached();
     await expect(section.locator('a[href="/articles"]').first()).toBeAttached();
   });
 
-  test("archive lists articles with tag filters and Blog structured data", async ({ page }) => {
-    await page.goto("/articles");
+  test("archive renders with canonical URL and Blog structured data", async ({ page }) => {
+    const slugs = await publishedSlugs(page);
     await expect(page.getByRole("heading", { level: 1, name: "Articles" })).toBeVisible();
-    await expect(page.locator(`a[href="/articles/${SLUG}"]`)).toBeVisible();
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", /\/articles$/);
     const types = await page
       .locator('script[type="application/ld+json"]')
       .evaluateAll((els) => els.map((e) => JSON.parse(e.textContent ?? "{}")["@type"]));
     expect(types).toEqual(expect.arrayContaining(["Blog", "BreadcrumbList"]));
-
-    await page
-      .getByRole("navigation", { name: "Topics" })
-      .getByRole("link", { name: /Next\.js/ })
-      .click();
-    await expect(page).toHaveURL(/\/articles\/tags\/next-js$/);
-    await expect(page.getByRole("heading", { level: 1, name: "Next.js" })).toBeVisible();
+    if (slugs.length === 0) await expect(page.getByText("The first article is on its way.")).toBeVisible();
   });
 
-  test("article page is SEO-complete", async ({ page }) => {
-    await page.goto(`/articles/${SLUG}`);
-    await expect(page.getByRole("heading", { level: 1 })).toContainText("Building a cinematic portfolio");
+  test("RSS feed and sitemap list exactly the published articles", async ({ page, request }) => {
+    const slugs = await publishedSlugs(page);
+    const rss = await request.get("/articles/rss.xml");
+    expect(rss.status()).toBe(200);
+    expect(rss.headers()["content-type"]).toContain("application/rss+xml");
+    const feed = await rss.text();
+    expect(feed).toContain("<channel>");
+    expect(feed.match(/<item>/g)?.length ?? 0).toBe(slugs.length);
 
-    // Exactly one h1, and section headings are linkable.
+    const sitemap = await (await request.get("/sitemap.xml")).text();
+    expect(sitemap).toContain("/articles</loc>");
+    for (const slug of slugs) {
+      expect(feed).toContain(`/articles/${slug}</link>`);
+      expect(sitemap).toContain(`/articles/${slug}</loc>`);
+    }
+  });
+
+  test("a published article is SEO-complete", async ({ page, request }) => {
+    const [slug] = await publishedSlugs(page);
+    test.skip(!slug, "No published articles yet (drafts are excluded from production builds).");
+
+    await page.goto(`/articles/${slug}`);
     await expect(page.locator("h1")).toHaveCount(1);
-    await expect(page.locator("article h2#the-stack")).toBeAttached();
 
     const head = page.locator("head");
-    await expect(head.locator('link[rel="canonical"]')).toHaveAttribute("href", new RegExp(`/articles/${SLUG}$`));
+    await expect(head.locator('link[rel="canonical"]')).toHaveAttribute("href", new RegExp(`/articles/${slug}$`));
     await expect(head.locator('meta[name="description"]')).toHaveAttribute("content", /.{50,160}/);
     await expect(head.locator('meta[property="og:type"]')).toHaveAttribute("content", "article");
     await expect(head.locator('meta[property="article:published_time"]')).toHaveAttribute(
@@ -51,28 +66,22 @@ test.describe("articles", () => {
     const ld = await page
       .locator('script[type="application/ld+json"]')
       .evaluateAll((els) => els.map((e) => JSON.parse(e.textContent ?? "{}")));
-    const posting = ld.find((d) => d["@type"] === "BlogPosting");
-    expect(posting).toMatchObject({
-      headline: expect.stringContaining("Building a cinematic portfolio"),
+    expect(ld.find((d) => d["@type"] === "BlogPosting")).toMatchObject({
+      headline: expect.any(String),
       datePublished: expect.stringMatching(/^\d{4}-\d{2}-\d{2}T/),
       author: { "@type": "Person" },
     });
     expect(ld.some((d) => d["@type"] === "BreadcrumbList")).toBe(true);
-  });
 
-  test("RSS feed, OG image and sitemap include the article", async ({ request }) => {
-    const rss = await request.get("/articles/rss.xml");
-    expect(rss.status()).toBe(200);
-    expect(rss.headers()["content-type"]).toContain("application/rss+xml");
-    expect(await rss.text()).toContain(`/articles/${SLUG}</link>`);
-
-    const og = await request.get(`/articles/${SLUG}/opengraph-image`);
+    const og = await request.get(`/articles/${slug}/opengraph-image`);
     expect(og.status()).toBe(200);
     expect(og.headers()["content-type"]).toContain("image/png");
 
-    const sitemap = await (await request.get("/sitemap.xml")).text();
-    expect(sitemap).toContain(`/articles/${SLUG}</loc>`);
-    expect(sitemap).toContain("/articles/tags/next-js</loc>");
+    // Tag links lead to working tag pages.
+    const tagHref = await page.locator("header a[href^='/articles/tags/']").first().getAttribute("href");
+    await page.goto(tagHref!);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+    await expect(page.locator(`a[href="/articles/${slug}"]`)).toBeVisible();
   });
 
   test("unknown articles 404", async ({ request }) => {
