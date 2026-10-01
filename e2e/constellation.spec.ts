@@ -63,3 +63,25 @@ test.describe("hero constellation clusters", () => {
     });
   }
 });
+
+test.describe("about portrait", () => {
+  test("photo stays accessible and becomes a particle portrait on desktop", async ({ browser, baseURL, isMobile }) => {
+    test.skip(isMobile, "phones show the plain photo");
+    const context = await browser.newContext({ baseURL, viewport: { width: 1440, height: 900 } });
+    await context.addInitScript(() => {
+      Object.defineProperty(navigator, "hardwareConcurrency", { get: () => 8 });
+      sessionStorage.setItem("ad-intro-seen", "1");
+    });
+    const page = await context.newPage();
+    await page.goto("/");
+    const figure = page.locator("#about figure").first();
+    // The real image is always in the DOM for SEO and screen readers.
+    await expect(figure.getByRole("img", { name: /Portrait of/ })).toBeAttached();
+    await figure.scrollIntoViewIfNeeded();
+    await expect(figure.locator("canvas")).toHaveCount(1, { timeout: 30_000 });
+    await expect(figure.getByText("hover to stir")).toHaveCSS("opacity", "1", { timeout: 30_000 });
+    // Smaller than before (was up to 480px wide).
+    expect((await figure.boundingBox())!.width).toBeLessThanOrEqual(380);
+    await context.close();
+  });
+});
