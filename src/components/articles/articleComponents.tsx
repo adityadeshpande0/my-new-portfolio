@@ -1,6 +1,8 @@
 import type { MDXComponents } from "mdx/types";
 import Image from "next/image";
+import Link from "next/link";
 import { isValidElement, type ReactNode } from "react";
+import { AgentLoop } from "./AgentLoop";
 
 const slugify = (input: string) =>
   input
@@ -74,6 +76,16 @@ export const articleComponents: MDXComponents = {
   em: ({ children }) => <em>{children}</em>,
   a: ({ href = "", children }) => {
     const external = /^https?:\/\//.test(href);
+    if (href.startsWith("/")) {
+      return (
+        <Link
+          href={href}
+          className="text-text underline decoration-accent/60 underline-offset-4 transition-colors hover:text-accent"
+        >
+          {children}
+        </Link>
+      );
+    }
     return (
       <a
         href={href}
@@ -120,4 +132,5 @@ export const articleComponents: MDXComponents = {
   ),
   td: ({ children }) => <td className="border-b border-line px-4 py-3 text-text/85">{children}</td>,
   Figure,
+  AgentLoop,
 };

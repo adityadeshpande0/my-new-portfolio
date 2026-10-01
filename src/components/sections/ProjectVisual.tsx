@@ -169,7 +169,7 @@ function Secondary({ motif }: { motif: Project["motif"] }) {
     chat: ["stream: true", "model: gpt", "tokens ▸▸▸", "200 OK"],
   };
   return (
-    <div className="type-label flex h-full min-w-0 flex-col justify-center gap-1 text-[9px] leading-tight whitespace-nowrap sm:text-[11px] lg:text-[11px] md:text-[13px] [&>span]:truncate">
+    <div className="type-label flex h-full min-w-0 flex-col justify-center gap-1 text-[9px] leading-tight whitespace-nowrap sm:text-[11px] md:text-[13px] lg:text-[11px] [&>span]:truncate">
       {lines[motif].map((l, i) => (
         <span key={l} className={i === 1 ? "text-accent" : "text-muted"}>
           {l}

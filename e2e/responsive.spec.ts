@@ -47,3 +47,19 @@ test.describe("responsive layout", () => {
     });
   }
 });
+
+// Regression: Tailwind emitted `md:` after `lg:` (mixed px/rem breakpoints), so tablet styles overrode desktop ones.
+test("desktop layouts are not overridden by tablet breakpoints", async ({ browser, baseURL }) => {
+  const context = await browser.newContext({ baseURL, viewport: { width: 1440, height: 900 } });
+  const page = await context.newPage();
+  await page.goto("/");
+  const columns = (selector: string) =>
+    page.locator(selector).evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(" ").length);
+  expect(await columns("section#projects ul.grid")).toBe(2);
+  const articleCards = await page.locator("section#articles ul > li").count();
+  if (articleCards >= 3) expect(await columns("section#articles ul.grid")).toBe(3);
+  // Project cards use the full column width on desktop (tablet caps them at 40rem).
+  const card = await page.locator("section#projects ul.grid > li").first().boundingBox();
+  expect(card!.width).toBeGreaterThan(480);
+  await context.close();
+});

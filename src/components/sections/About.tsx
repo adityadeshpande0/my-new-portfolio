@@ -14,7 +14,7 @@ export function About() {
     <section id="about" aria-labelledby="about-title" className="section overflow-hidden">
       <Arc size={720} className="top-24 -left-[420px]" />
       <Container>
-        <div className="grid gap-12 lg:gap-20 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] md:gap-12">
+        <div className="grid gap-12 md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] md:gap-12 lg:gap-20">
           <Parallax offset={30} className="order-2 mx-auto w-full max-w-[480px] md:order-1 md:self-center">
             <Reveal>
               <Portrait />

@@ -53,9 +53,15 @@
 
   --ease-out-expo: var(--ease-out);
 
+  /* All breakpoints declared in px and in ascending order: Tailwind emits media queries in
+     declaration order when units differ, so a default (rem) md placed after these would
+     override lg/xl on large screens. */
+  --breakpoint-xs: 400px;
   --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
   --breakpoint-lg: 1024px;
   --breakpoint-xl: 1440px;
+  --breakpoint-2xl: 1920px;
 }
 
 /* ------------------------------------------------------------------ */
