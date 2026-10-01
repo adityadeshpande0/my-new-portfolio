@@ -15,7 +15,7 @@ export function Portrait() {
         src={profile.portrait}
         alt={`Portrait of ${profile.shortName}`}
         fill
-        sizes="(min-width: 1024px) 480px, 100vw"
+        sizes="(min-width: 1024px) 380px, (min-width: 640px) 340px, 300px"
         className="object-cover object-[50%_30%] saturate-[0.9] sepia-[0.25]"
       />
       <div

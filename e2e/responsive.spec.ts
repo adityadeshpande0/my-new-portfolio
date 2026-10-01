@@ -63,3 +63,20 @@ test("desktop layouts are not overridden by tablet breakpoints", async ({ browse
   expect(card!.width).toBeGreaterThan(480);
   await context.close();
 });
+
+test("about portrait is compact", async ({ browser, baseURL }) => {
+  for (const [width, max] of [
+    [1440, 380],
+    [768, 340],
+    [375, 300],
+  ]) {
+    const context = await browser.newContext({ baseURL, viewport: { width, height: 900 } });
+    const page = await context.newPage();
+    await page.goto("/");
+    const img = page.locator("#about").getByRole("img", { name: /Portrait of/ });
+    await expect(img).toBeAttached();
+    const box = await img.evaluate((el) => el.parentElement!.getBoundingClientRect().width);
+    expect(box, `portrait width at ${width}px`).toBeLessThanOrEqual(max);
+    await context.close();
+  }
+});
