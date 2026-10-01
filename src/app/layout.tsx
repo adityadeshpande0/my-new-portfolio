@@ -8,7 +8,7 @@ import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvide
 import { Footer } from "@/components/sections/Footer";
 import { Nav } from "@/components/sections/Nav";
 import { profile } from "@/content/profile";
-import { siteDescription, siteTitle, siteUrl } from "@/lib/site";
+import { rssAlternate, siteDescription, siteTitle, siteUrl } from "@/lib/site";
 import "./globals.css";
 
 const inter = Inter({ variable: "--font-inter", subsets: ["latin"], weight: ["400", "500"], display: "swap" });
@@ -25,7 +25,10 @@ export const metadata: Metadata = {
   description: siteDescription,
   authors: [{ name: profile.name, url: siteUrl }],
   creator: profile.name,
-  alternates: { canonical: "/" },
+  alternates: {
+    canonical: "/",
+    ...rssAlternate,
+  },
   openGraph: {
     type: "website",
     url: siteUrl,
@@ -45,6 +48,7 @@ export const viewport: Viewport = {
 const personJsonLd = {
   "@context": "https://schema.org",
   "@type": "Person",
+  "@id": `${siteUrl}/#person`,
   name: profile.name,
   jobTitle: "Full-stack Software Engineer",
   url: siteUrl,
