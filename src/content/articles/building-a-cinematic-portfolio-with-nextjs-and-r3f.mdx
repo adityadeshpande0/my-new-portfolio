@@ -1,0 +1,82 @@
+export const metadata = {
+  title: "Building a cinematic portfolio with Next.js 16, React Three Fiber and Framer Motion",
+  description:
+    "How I kept a 3D, motion-heavy portfolio fast and accessible: device gating, a scroll-pinned WebGL scene, and the bugs I hit.",
+  date: "2026-10-01",
+  tags: ["Next.js", "React Three Fiber", "Framer Motion", "Performance"],
+  draft: false,
+};
+
+A portfolio is a strange product. It has one job: convince someone, in about five seconds, that you can build things well. That pushes you toward spectacle. But a slow or janky portfolio says the opposite of what you want, so every effect has to earn its place.
+
+This is how I approached the site you're reading, and what broke along the way.
+
+## The stack
+
+- **Next.js 16 (App Router)** with Server Components by default, so most of the page ships as static HTML.
+- **React Three Fiber** for the 3D scenes, with `three` underneath.
+- **Framer Motion** for every animation: entrances, scroll-linked effects and layout transitions.
+- **Lenis** for smooth scrolling. It drives the native scroll position, so Framer Motion's `useScroll` keeps working untouched.
+- **MDX** for case studies and these articles, so writing a post is just adding a file.
+
+## Gate the 3D before you render it
+
+WebGL is the most expensive thing on the page, so the first decision is whether to render it at all. A small `CanvasGate` component checks three things before a canvas mounts:
+
+1. Does the visitor prefer reduced motion?
+2. Does the device report four CPU cores or fewer?
+3. Is WebGL available?
+
+If any answer says no, it renders a static amber glow instead. Phones get exactly one canvas (the hero), and every canvas stops rendering when it scrolls out of view:
+
+```tsx
+<Canvas frameloop={active ? "always" : "never"} dpr={[1, 1.5]}>
+```
+
+Capping the device pixel ratio at 1.5 matters more than it looks: on a 3× phone screen it cuts the pixels the GPU has to fill by more than half.
+
+## A scroll-pinned scene
+
+The hero is a constellation of nodes that gathers into three clusters (Frontend, Backend and Cloud) as you scroll. The section is about two screens tall with a sticky, full-height stage inside it. Framer Motion's `useScroll` turns the scroll position into a 0–1 progress value, a spring smooths it, and the scene reads it every frame:
+
+```tsx
+const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
+const progress = useSpring(scrollYProgress, { stiffness: 60, damping: 22 });
+```
+
+Reading the value inside `useFrame` instead of storing it in React state means scrolling never triggers a re-render.
+
+## The bug: a missing cluster
+
+On some laptops the Frontend cluster simply wasn't there. Three things were going on:
+
+- The cluster spread was fixed in world units, so in narrower windows the left cluster fell outside the camera's view.
+- The camera leans toward the cursor. With the cursor on the left, the Frontend label rose up under the navigation bar.
+- The labels were rendered with a helper that occasionally dropped one from the DOM.
+
+The fix was to compute the layout from the visible frustum on every frame: side by side on landscape screens, stacked on portrait ones. The cursor lean is damped while the clusters are formed, and each label is a plain DOM node positioned by projecting its 3D anchor:
+
+```tsx
+anchor.set(c.x, c.y + offset, c.z).project(camera);
+const x = ((anchor.x + 1) / 2) * width;
+const y = ((1 - anchor.y) / 2) * height;
+label.style.transform = `translate3d(${x}px, ${y}px, 0) translate(-50%, -50%)`;
+```
+
+An end-to-end test now checks that all three labels are visible at several window sizes, with the cursor on either side.
+
+## Responsive means every screen
+
+"Looks good on my laptop" isn't a test. I ran an automated sweep from a 320px phone up to a 2560px monitor, including a phone held sideways, and it found real problems:
+
+- **Sideways scroll on phones.** Rows waiting to slide in sat off-screen, which widened the mobile layout viewport. `overflow-x: clip` on the root and on that section fixed it.
+- **Landscape phones.** A pinned, full-height hero can't fit in 390px of height, so short screens get an unpinned hero and a heading size capped by viewport height.
+- **Large monitors.** Everything looked small in a wide, empty frame. Raising the root font size above 1600px scales the whole rem-based layout in one line.
+
+## What I'd keep
+
+- Decide **whether** to render 3D before deciding **how**.
+- Keep per-frame values out of React state.
+- Test the shapes of screens people actually use, not just your own.
+
+If you have questions about any of it, get in touch.
