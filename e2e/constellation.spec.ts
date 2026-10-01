@@ -11,6 +11,8 @@ const cases = [
 
 test.describe("hero constellation clusters", () => {
   test.skip(({ isMobile }) => isMobile, "desktop windows are set explicitly below");
+  // Software-rendered WebGL is CPU-heavy, especially at full HD alongside other workers.
+  test.describe.configure({ timeout: 90_000 });
 
   for (const c of cases) {
     test(`all three cluster labels are visible: ${c.name}`, async ({ browser, baseURL }) => {
@@ -49,7 +51,7 @@ test.describe("hero constellation clusters", () => {
                   };
                 }),
               ),
-            { timeout: 10_000 },
+            { timeout: 30_000 },
           )
           .toEqual([
             { text: "…/Frontend…", visible: true },

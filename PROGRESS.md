@@ -20,6 +20,14 @@ All build phases from `CLAUDE.md` §11 are in place, to a first-pass level:
 - Fixed: sideways scroll on phones, hero overflowing on landscape phones, cramped top of the hero on small phones, a stray arrow next to CTA buttons, the project filters wrapping on phones (now a swipeable row), cramped two-column projects on tablets (now one column), About stacking on tablets (now side by side from 768px), small UI on large monitors (now scales up), plus narrow-phone tweaks to skills, certificate cards, the contact email and the mobile menu.
 - Added `e2e/responsive.spec.ts`: no horizontal scroll and the hero name fully on screen at 8 sizes, with real mobile emulation for phones and tablets.
 
+## Done (session 3): articles
+
+- `/articles` archive (paginated, 10 per page), `/articles/tags/<tag>` pages, `/articles/<slug>` with table of contents, author box, share links, prev/next and related articles.
+- "…/Articles…" section on the home page (latest three) and an Articles link in the nav and footer.
+- SEO: per-article metadata and canonical URLs, Open Graph `article` tags, generated OG images, `BlogPosting`, `BreadcrumbList` and `Blog` JSON-LD, sitemap entries, RSS feed with autodiscovery.
+- Authoring: `_template.mdx` and a README guide. Drafts only show in `npm run dev`.
+- Tests: `e2e/articles.spec.ts`.
+
 ## Next
 
 - Run Lighthouse on a real deployment (mobile) and tune any score below 90.
@@ -28,6 +36,9 @@ All build phases from `CLAUDE.md` §11 are in place, to a first-pass level:
 - Consider a shared-store rate limiter if the contact form gets abused.
 
 ## Needs Aditya
+
+- **First article**: `src/content/articles/building-a-cinematic-portfolio-with-nextjs-and-r3f.mdx` was drafted for you in your voice. Edit it, or set `draft: true` / delete it before merging.
+- **Code highlighting** in articles needs a new dependency (e.g. Shiki). Approve it if you want coloured code blocks.
 
 - **Domain**: `aditya.dev` is a placeholder. Set `NEXT_PUBLIC_SITE_URL` to the real URL (it drives canonical URLs, sitemap, OG and JSON-LD).
 - **Resend**: create an API key, verify a sending domain, then set `RESEND_API_KEY`, `CONTACT_TO_EMAIL` and `CONTACT_FROM_EMAIL`. Until then the form tells visitors to email directly.
