@@ -40,9 +40,38 @@ All resume content is typed data in `src/content/`:
 
 - `profile.ts`: name, tagline, about text, stats, links, education
 - `experience.ts`, `skills.ts`, `recognition.ts`, `projects.ts`
-- `projects/<slug>.mdx`: case studies (Overview → Problem → Approach → Architecture → Tech → Results → What I learned)
+- `projects/<slug>.mdx`: case studies
+- `articles/<slug>.mdx`: articles (see [Writing articles](#writing-articles)) (Overview → Problem → Approach → Architecture → Tech → Results → What I learned)
 
 Wrap words in `*asterisks*` in tagline, about and summary strings to render them as italic emphasis.
+
+## Writing articles
+
+Articles live in `src/content/articles/`, one MDX file per article. The file name is the URL: `my-post.mdx` → `/articles/my-post`.
+
+1. Copy `src/content/articles/_template.mdx` to `src/content/articles/<slug>.mdx` (lowercase-kebab-case).
+2. Fill in the `metadata` block at the top:
+
+   | Field | Required | Notes |
+   |---|---|---|
+   | `title` | yes | 8–110 characters. Used for the page title, `<h1>`, social cards and RSS. |
+   | `description` | yes | 50–160 characters. Used for the meta description, cards, RSS and previews. |
+   | `date` | yes | Publish date, `YYYY-MM-DD`. Articles are sorted by it. |
+   | `updated` | no | `YYYY-MM-DD`. Shown as "Updated …" and used as `dateModified`. |
+   | `tags` | yes | 1–6 tags. Each tag gets its own page at `/articles/tags/<tag>`. |
+   | `draft` | no | `true` shows the article only in `npm run dev`. Remove it or set `false` to publish. |
+
+3. Write in Markdown. Use `##` for sections (they build the table of contents and get linkable anchors), fenced code blocks for code, and `<Figure src="/images/articles/…" alt="…" width={…} height={…} />` for images (put the files in `public/images/articles/`).
+4. Run `npm run dev` to preview, then `npm run build`. The build fails with a clear message if the metadata is invalid.
+5. Commit and deploy. Nothing else needs editing.
+
+Each published article automatically gets:
+
+- **SEO metadata:** title, description, canonical URL, Open Graph `article` tags (published/modified time, tags, author) and a Twitter card.
+- **A generated social image** at `/articles/<slug>/opengraph-image`.
+- **Structured data:** `BlogPosting` and `BreadcrumbList` JSON-LD.
+- **Listings:** an entry in `/sitemap.xml` and the RSS feed (`/articles/rss.xml`), a card on the home page if it's among the latest three, and a place in the archive and its tag pages.
+- **Reading extras:** reading time, a table of contents, prev/next and related articles, and share links.
 
 ## Project layout
 

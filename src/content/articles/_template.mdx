@@ -1,0 +1,42 @@
+{/*
+  HOW TO PUBLISH AN ARTICLE
+  1. Copy this file to src/content/articles/<your-slug>.mdx (lowercase-kebab-case;
+     the file name becomes the URL: /articles/<your-slug>).
+  2. Fill in the metadata below. The build fails with a clear message if something is off.
+  3. Write in Markdown below the metadata. Use ## for sections (they feed the table of contents).
+  4. Keep `draft: true` while writing; it only shows in `npm run dev`. Set it to false to publish.
+  Files that start with "_" (like this one) are never published.
+*/}
+
+export const metadata = {
+  title: "A clear, specific title (8–110 characters)",
+  description:
+    "One or two sentences, 50–160 characters. Shown in Google results, social previews, RSS and article cards.",
+  date: "2026-10-05",
+  // updated: "2026-10-12",
+  tags: ["React", "TypeScript"],
+  draft: true,
+};
+
+Open with the problem or the question in two or three sentences, so readers know why it matters.
+
+## First section
+
+Body text. Use **bold** sparingly, `inline code` for identifiers, and [links](https://example.com) to sources.
+
+```tsx
+// Code blocks are fine too.
+export function Example() {
+  return <p>Hello</p>;
+}
+```
+
+## Second section
+
+> A pull quote or key takeaway.
+
+<Figure src="/images/articles/example.png" alt="Describe the image for screen readers and SEO" width={1600} height={900} caption="Optional caption" />
+
+## Wrapping up
+
+End with the takeaway, and what you'd do next.

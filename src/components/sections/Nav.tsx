@@ -39,7 +39,7 @@ export function Nav() {
     };
   }, [open, lenis]);
 
-  const hrefFor = (hash: string) => (onHome ? hash : `/${hash}`);
+  const hrefFor = (href: string) => (href.startsWith("/") || onHome ? href : `/${href}`);
 
   const goMobile = (hash: string) => {
     setOpen(false);
@@ -122,6 +122,8 @@ export function Nav() {
                   <m.a
                     href={hrefFor(l.href)}
                     onClick={(e) => {
+                      // Routes (e.g. /articles) navigate normally; anchors scroll smoothly on the home page.
+                      if (l.href.startsWith("/")) return setOpen(false);
                       if (onHome) e.preventDefault();
                       goMobile(l.href);
                     }}
