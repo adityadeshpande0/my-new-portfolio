@@ -16,7 +16,7 @@ const IcosahedronBg = dynamic(() => import("@/components/three/IcosahedronBg"), 
 const span: Record<SkillGroup["size"], string> = {
   lg: "col-span-2 lg:row-span-2",
   md: "col-span-2",
-  sm: "col-span-2 min-[400px]:col-span-1",
+  sm: "col-span-2 xs:col-span-1",
 };
 
 function SkillCard({ group, index }: { group: SkillGroup; index: number }) {
@@ -100,7 +100,7 @@ export function Skills() {
             {skills.map((g, i) => (
               <SkillCard key={g.id} group={g} index={i} />
             ))}
-            <li className="col-span-2 min-[400px]:col-span-1 lg:col-span-3">
+            <li className="col-span-2 xs:col-span-1 lg:col-span-3">
               <Reveal delay={0.3} className="h-full">
                 <Card variant="outline" className="flex h-full items-end !p-5 sm:!p-7">
                   <p className="max-w-[28rem] text-[15px] leading-relaxed text-muted sm:text-base">
