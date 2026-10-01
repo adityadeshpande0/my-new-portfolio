@@ -70,8 +70,8 @@ export function Projects() {
                 exit={{ opacity: 0, scale: 0.96 }}
                 transition={{ duration: 0.6, ease: EASE_OUT }}
                 className={cn(
-                  "w-full lg:max-w-none md:max-w-[40rem]",
-                  i % 2 === 1 && "lg:ml-0 md:ml-auto",
+                  "w-full md:max-w-[40rem] lg:max-w-none",
+                  i % 2 === 1 && "md:ml-auto lg:ml-0",
                   i % 2 === 1 && filter === "All" && "lg:mt-28",
                 )}
               >

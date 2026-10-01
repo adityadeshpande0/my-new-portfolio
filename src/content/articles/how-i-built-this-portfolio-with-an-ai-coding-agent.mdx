@@ -1,0 +1,86 @@
+export const metadata = {
+  title: "How I built this portfolio with an AI coding agent",
+  description:
+    "From a written spec to merged pull requests: the workflow I used to build this site with an AI agent, and what I'd do the same way again.",
+  date: "2026-10-01",
+  tags: ["AI", "AI Agents", "Next.js", "Workflow"],
+  draft: false,
+};
+
+I wanted a portfolio that felt crafted: dark, warm, with real 3D and motion, but still fast and accessible. I also wanted to see how far I could get by directing an AI coding agent instead of typing every line myself.
+
+This is the workflow that got me from an empty repository to the site you're on, and what I learned about working this way.
+
+## Start with a spec, not a prompt
+
+The most useful thing I wrote wasn't code. It was a single `CLAUDE.md` file in the repository that describes the whole project:
+
+- **The concept**: "Engineered Warmth", near-black with amber highlights taken from the lighting in my headshot.
+- **Design tokens**: exact colours, radii, spacing and type scale.
+- **Every section**, in order, and what it should contain.
+- **3D and motion rules**, including when not to render 3D at all.
+- **Hard constraints**: never show my phone number, one accent colour only, no gimmicky effects.
+- **Working rules**: build in phases, run checks before every commit, log decisions in a `DECISIONS.md` file.
+
+The agent reads this file at the start of every session. That meant I never had to re-explain the project, and decisions stayed consistent from one change to the next.
+
+> A good spec turns "make it look nice" into something an agent can check its work against.
+
+## Give it real inputs
+
+Alongside the spec I gave the agent my resume (as a PDF) and my headshot. It pulled the experience, skills, certifications and links straight from the resume into typed content files, so no component has resume text hard-coded into it. The amber accent in the design came from the studio lighting in the photo.
+
+## Build in phases, one pull request at a time
+
+The spec splits the work into phases: foundation, UI kit, static sections, 3D, motion, case studies, contact form, polish and deploy. Every meaningful change landed as its own pull request with a descriptive name, so I could review one thing at a time and merge when I was happy.
+
+Before opening a pull request, the agent ran the same checks every time:
+
+```bash
+npm run lint
+npm run typecheck
+npm run build
+npm run test:e2e
+```
+
+If any of them failed, it fixed the problem first. That simple rule kept the main branch working the whole way through.
+
+## Review it like a person would
+
+Passing tests isn't the same as looking good. The agent drove a headless browser to take screenshots of every section at several sizes: a 320px phone, a phone held sideways, a tablet, a laptop and a 2560px monitor. Then it fixed what looked wrong.
+
+That review caught things tests wouldn't have:
+
+- the page could be dragged sideways on phones;
+- the hero didn't fit on a phone held in landscape;
+- everything looked too small on large monitors;
+- a tiny arrow showed between two buttons.
+
+Each fix came with a test so it can't quietly come back.
+
+## When I found a bug
+
+Even with all that, I still found a bug on my own laptop: while scrolling, the hero's graph splits into three labelled clusters (Frontend, Backend and Cloud), but on my computer the Frontend one sometimes didn't show.
+
+The agent reproduced it by scrolling with a simulated mouse wheel at common laptop window sizes, with the cursor in different places. It found three causes: the layout didn't adapt to the window's shape, the camera's lean toward the cursor could push a label under the navigation bar, and the label component occasionally dropped one. It fixed all three, then wrote a test and confirmed the test failed on the old code before trusting it.
+
+"Show me the test failing on the old code" turned out to be one of the most useful things to ask for.
+
+## What I did vs. what the agent did
+
+It's worth being clear about the split:
+
+- **I** decided what the site should be: the concept, the content, the priorities, and what "good" looks like. I reviewed every pull request, reported what felt wrong on my own devices, and decided what to merge.
+- **The agent** turned that into code: components, 3D scenes, animations, tests and docs. It ran the checks, took the screenshots, and explained its decisions in each pull request.
+
+The agent was fast and thorough. But the result is only as good as the direction and the review.
+
+## What I'd do the same way again
+
+1. **Write the spec first.** It pays for itself on the first day.
+2. **Name every pull request properly** and keep each one focused. It makes the history readable.
+3. **Ask for proof**: tests that fail before a fix, and screenshots at real screen sizes.
+4. **Check on your own devices.** The best bug report came from simply using the site on my laptop.
+5. **Keep a decisions log.** Future you (or a future agent session) will want to know why things are the way they are.
+
+If you want to know what an "AI harness" is and why it made this workflow possible, I wrote [a separate explainer](/articles/what-is-an-ai-harness). The technical side of the build is in [this article](/articles/building-a-cinematic-portfolio-with-nextjs-and-r3f).

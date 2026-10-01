@@ -1,0 +1,90 @@
+export const metadata = {
+  title: "What is an AI harness? The software that turns a model into an agent",
+  description:
+    "A language model only predicts text. The harness around it adds tools, permissions, memory and feedback loops. Here's how it works.",
+  date: "2026-10-01",
+  tags: ["AI", "AI Agents", "Developer Tools"],
+  draft: false,
+};
+
+A large language model, on its own, does one thing: it reads text and predicts more text. It can't open a file, run a test or check a web page. Yet AI coding agents do all of those things every day.
+
+The difference is the **harness**: the software wrapped around the model that gives it a job, tools, rules and a way to see the results of its actions. If the model is the engine, the harness is the rest of the car: steering, brakes, dashboard and the road it drives on.
+
+## Model vs. harness
+
+It helps to separate the two clearly:
+
+- **The model** decides what to do next. Given everything in front of it, it writes an answer or asks to use a tool.
+- **The harness** decides what the model sees, what it's allowed to do, and what happens when it asks to do something.
+
+Two products can use the same model and behave very differently, because their harnesses differ. That's why "which model is best?" is only half the question. The other half is what the model is plugged into.
+
+## What a harness actually does
+
+Most agent harnesses handle the same handful of jobs.
+
+### 1. Assembles the context
+
+Before every step, the harness builds what the model reads: a system prompt, the user's request, the conversation so far, the results of earlier tool calls, and any project rules. The model has no memory between calls. Everything it "knows" about your task is whatever the harness put in front of it this time.
+
+### 2. Defines the tools
+
+Tools are described to the model as functions with names, descriptions and typed parameters: "run a shell command", "edit this file", "search the code". The model never executes anything itself. It asks, and the harness runs the tool and reports back.
+
+### 3. Runs the agent loop
+
+This is the core of an agent. Instead of a single question and answer, the harness repeats a cycle until the job is done:
+
+<AgentLoop />
+
+Each pass through the loop gives the model new evidence: a failing test, a compiler error, a screenshot. That's what lets an agent correct itself instead of guessing once.
+
+### 4. Enforces permissions and sandboxing
+
+An agent that can run commands can also run the wrong ones. Good harnesses decide which actions are always allowed, which need a person's approval, and which are blocked outright. They often run the work in an isolated environment (a container or a separate workspace), so mistakes stay contained and secrets stay out of reach.
+
+### 5. Manages memory and long context
+
+Real tasks outgrow a single context window. Harnesses handle this by loading persistent project instructions at the start of every session, keeping notes, and summarising older parts of a long conversation so work can continue.
+
+### 6. Closes the feedback loop
+
+The most useful thing a harness can do is give the model a way to check its own work: run the linter, run the build, run the tests, take a screenshot. An agent that can verify is far more reliable than one that can only write.
+
+## A concrete example: this website
+
+This portfolio was built by an AI coding agent working inside a harness, with me directing it. Here's how the pieces above showed up in practice:
+
+- **Project rules.** A `CLAUDE.md` file in the repository describes the design system, the sections, the tech stack and the working rules (for example: never show the phone number, use only one accent colour). The harness loads it at the start of every session, so the agent never starts from zero.
+- **Tools.** The agent could read and edit files, run shell commands, start the site, and drive a headless browser to take screenshots at different screen sizes.
+- **Sandbox.** All of that happened in an isolated cloud container with its own copy of the repository, not on my laptop.
+- **Feedback loops.** Before every pull request, the agent ran lint, type checks, a production build and end-to-end tests. When I reported that the "Frontend" cluster in the hero didn't show on my computer, it reproduced the bug at laptop window sizes, fixed it, and added a test that checks all three labels are visible.
+- **Permissions.** Changes went through pull requests on GitHub, and merging stayed my decision.
+
+The model wrote the code, but the harness is what made the work checkable.
+
+## Why the harness matters as much as the model
+
+When an agent does something impressive, it's tempting to credit the model alone. In practice, a lot of the reliability comes from the harness:
+
+- **Better context** means fewer wrong assumptions.
+- **Better tools** mean the agent can find out instead of guessing.
+- **Better feedback** (fast tests, screenshots, type errors) means mistakes get caught in the loop rather than by you.
+- **Better guardrails** mean you can let it do more, safely.
+
+## Getting more out of an agent harness
+
+If you work with coding agents, you shape the harness more than you might think:
+
+1. **Write the rules down.** A short project file with conventions, constraints and "never do X" rules beats repeating yourself in every prompt.
+2. **Make checks fast and obvious.** One command each for lint, type checks and tests gives the agent a clear definition of "done".
+3. **Ask for proof.** For a bug, ask for a test that fails before the fix and passes after. For a UI change, ask for screenshots at several screen sizes.
+4. **Keep changes small and reviewable.** One focused pull request at a time, with a clear name.
+5. **Stay the reviewer.** The harness can enforce rules. Judging taste and priorities is still your job.
+
+## Wrapping up
+
+An AI model on its own is a very capable text predictor. A harness turns it into something that can act: it decides what the model sees, what it can touch, and how it learns whether it was right. Understanding that split makes it much easier to use agents well, and to know which part to improve when they get something wrong.
+
+If you're curious how that played out for this site specifically, I wrote up the [workflow](/articles/how-i-built-this-portfolio-with-an-ai-coding-agent) and the [technical details](/articles/building-a-cinematic-portfolio-with-nextjs-and-r3f).

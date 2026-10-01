@@ -20,9 +20,9 @@ export async function Articles() {
         </div>
 
         {latest.length > 0 ? (
-          <ul className="grid gap-4 lg:grid-cols-3 md:grid-cols-2">
+          <ul className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {latest.map((article, i) => (
-              <li key={article.slug} className={latest.length === 1 ? "lg:col-span-1 md:col-span-2" : undefined}>
+              <li key={article.slug} className={latest.length === 1 ? "md:col-span-2 lg:col-span-1" : undefined}>
                 <Reveal delay={i * 0.08} className="h-full">
                   <ArticleCard article={article} />
                 </Reveal>
