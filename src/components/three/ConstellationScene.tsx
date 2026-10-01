@@ -1,10 +1,9 @@
 "use client";
 
-import { Html } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Bloom, EffectComposer } from "@react-three/postprocessing";
 import type { MotionValue } from "framer-motion";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, type RefObject } from "react";
 import * as THREE from "three";
 import { mulberry32 } from "@/lib/random";
 
@@ -17,17 +16,47 @@ export interface ConstellationSceneProps {
   active: boolean;
 }
 
-const CLUSTERS = [
-  { label: "Frontend", center: new THREE.Vector3(-2.5, 0.35, 0) },
-  { label: "Backend", center: new THREE.Vector3(0, -0.35, -0.4) },
-  { label: "Cloud", center: new THREE.Vector3(2.5, 0.35, 0) },
-] as const;
+const CLUSTER_LABELS = ["Frontend", "Backend", "Cloud"] as const;
+const CAMERA_Z = 7;
+const FOV = 50;
+const CLUSTER_RADIUS = 0.95;
+
+interface ClusterLayout {
+  centers: THREE.Vector3[];
+  /** Scale applied to each cluster's local offsets. */
+  scale: number;
+}
+
+/**
+ * Places the three clusters inside the visible frustum for the current aspect ratio:
+ * side by side on landscape screens, stacked on portrait ones. Keeps every cluster
+ * (and its label) on screen at any window size.
+ */
+function layoutClusters(aspect: number, out: ClusterLayout): ClusterLayout {
+  const halfH = Math.tan(THREE.MathUtils.degToRad(FOV / 2)) * CAMERA_Z;
+  const halfW = halfH * aspect;
+  if (aspect >= 1) {
+    const spread = THREE.MathUtils.clamp(halfW * 0.5, 1.3, 2.6);
+    out.scale = THREE.MathUtils.clamp(spread / 2.4, 0.65, 1);
+    out.centers[0].set(-spread, -0.05, 0);
+    out.centers[1].set(0, -0.75, -0.4);
+    out.centers[2].set(spread, -0.05, 0);
+  } else {
+    out.scale = THREE.MathUtils.clamp(halfW / 1.9, 0.5, 0.85);
+    const x = halfW * 0.28;
+    out.centers[0].set(-x, 1.55, 0);
+    out.centers[1].set(x, -0.15, -0.4);
+    out.centers[2].set(-x, -1.85, 0);
+  }
+  return out;
+}
 
 const AMBER = new THREE.Color("#E8A15C");
 
 interface Graph {
   cloud: Float32Array;
-  cluster: Float32Array;
+  /** Offsets from each node's cluster centre (scaled per layout at runtime). */
+  local: Float32Array;
   phase: Float32Array;
   alpha: Float32Array;
   size: Float32Array;
@@ -39,7 +68,7 @@ interface Graph {
 function buildGraph(count: number): Graph {
   const rand = mulberry32(7);
   const cloud = new Float32Array(count * 3);
-  const cluster = new Float32Array(count * 3);
+  const local = new Float32Array(count * 3);
   const phase = new Float32Array(count);
   const alpha = new Float32Array(count);
   const size = new Float32Array(count);
@@ -56,13 +85,12 @@ function buildGraph(count: number): Graph {
 
     const g = i % 3;
     group[i] = g;
-    const c = CLUSTERS[g].center;
     const cu = rand() * Math.PI * 2;
     const cv = Math.acos(2 * rand() - 1);
-    const cr = Math.pow(rand(), 0.6) * 0.95;
-    cluster[i * 3] = c.x + Math.sin(cv) * Math.cos(cu) * cr;
-    cluster[i * 3 + 1] = c.y + Math.sin(cv) * Math.sin(cu) * cr * 0.9;
-    cluster[i * 3 + 2] = c.z + Math.cos(cv) * cr;
+    const cr = Math.pow(rand(), 0.6) * CLUSTER_RADIUS;
+    local[i * 3] = Math.sin(cv) * Math.cos(cu) * cr;
+    local[i * 3 + 1] = Math.sin(cv) * Math.sin(cu) * cr * 0.9;
+    local[i * 3 + 2] = Math.cos(cv) * cr;
 
     phase[i] = rand() * Math.PI * 2;
     alpha[i] = 0.35 + rand() * 0.65;
@@ -100,7 +128,7 @@ function buildGraph(count: number): Graph {
 
   return {
     cloud,
-    cluster,
+    local,
     phase,
     alpha,
     size,
@@ -140,13 +168,18 @@ function smoothstep(a: number, b: number, x: number) {
   return t * t * (3 - 2 * t);
 }
 
-function Constellation({ progress, visible, tier }: Omit<ConstellationSceneProps, "active">) {
+interface ConstellationProps extends Omit<ConstellationSceneProps, "active"> {
+  labels: RefObject<Array<HTMLDivElement | null>>;
+}
+
+function Constellation({ progress, visible, tier, labels }: ConstellationProps) {
   const count = tier === "high" ? 110 : 42;
   const graph = useMemo(() => buildGraph(count), [count]);
   const { camera, gl } = useThree();
   const pointer = useRef({ x: 0, y: 0 });
   const fade = useRef(0);
-  const labelRefs = useRef<Array<HTMLDivElement | null>>([]);
+  const layout = useRef<ClusterLayout>({ centers: [0, 1, 2].map(() => new THREE.Vector3()), scale: 1 });
+  const projected = useMemo(() => new THREE.Vector3(), []);
 
   const positions = useMemo(() => new Float32Array(graph.cloud), [graph]);
 
@@ -227,16 +260,21 @@ function Constellation({ progress, visible, tier }: Omit<ConstellationSceneProps
     fade.current += ((visible ? 1 : 0) - fade.current) * Math.min(1, delta * 1.4);
     const opacity = fade.current * exit;
 
-    const { cloud, cluster, phase } = graph;
+    const { width, height } = state.size;
+    const { centers, scale } = layoutClusters(width / Math.max(1, height), layout.current);
+
+    const { cloud, local, phase, group } = graph;
     const drift = 0.14 * (1 - gather * 0.6);
     for (let i = 0; i < count; i++) {
       const i3 = i * 3;
       const ph = phase[i];
-      positions[i3] = cloud[i3] + (cluster[i3] - cloud[i3]) * gather + Math.sin(t * 0.35 + ph) * drift;
-      positions[i3 + 1] =
-        cloud[i3 + 1] + (cluster[i3 + 1] - cloud[i3 + 1]) * gather + Math.cos(t * 0.3 + ph * 1.3) * drift;
-      positions[i3 + 2] =
-        cloud[i3 + 2] + (cluster[i3 + 2] - cloud[i3 + 2]) * gather + Math.sin(t * 0.25 + ph * 0.7) * drift;
+      const c = centers[group[i]];
+      const tx = c.x + local[i3] * scale;
+      const ty = c.y + local[i3 + 1] * scale;
+      const tz = c.z + local[i3 + 2] * scale;
+      positions[i3] = cloud[i3] + (tx - cloud[i3]) * gather + Math.sin(t * 0.35 + ph) * drift;
+      positions[i3 + 1] = cloud[i3 + 1] + (ty - cloud[i3 + 1]) * gather + Math.cos(t * 0.3 + ph * 1.3) * drift;
+      positions[i3 + 2] = cloud[i3 + 2] + (tz - cloud[i3 + 2]) * gather + Math.sin(t * 0.25 + ph * 0.7) * drift;
     }
     pointsGeo.getAttribute("position").needsUpdate = true;
 
@@ -244,14 +282,23 @@ function Constellation({ progress, visible, tier }: Omit<ConstellationSceneProps
     intraMat.opacity = 0.085 * opacity;
     interMat.opacity = 0.085 * opacity * (1 - gather);
 
-    // Camera leans toward the cursor, lerped.
-    camera.position.x += (pointer.current.x * 0.6 - camera.position.x) * Math.min(1, delta * 2);
-    camera.position.y += (-pointer.current.y * 0.35 - camera.position.y) * Math.min(1, delta * 2);
+    // Camera leans toward the cursor, lerped. The lean calms down while the clusters
+    // are formed so the cursor position can never push a cluster off screen.
+    const lean = 1 - gather * 0.75;
+    camera.position.x += (pointer.current.x * 0.6 * lean - camera.position.x) * Math.min(1, delta * 2);
+    camera.position.y += (-pointer.current.y * 0.35 * lean - camera.position.y) * Math.min(1, delta * 2);
     camera.lookAt(0, 0, 0);
 
+    // Labels are plain DOM nodes positioned by projecting each cluster's label anchor.
     const labelOpacity = smoothstep(0.24, 0.36, p) * exit * fade.current;
-    labelRefs.current.forEach((el) => {
-      if (el) el.style.opacity = String(labelOpacity);
+    labels.current?.forEach((el, i) => {
+      if (!el) return;
+      const c = centers[i];
+      projected.set(c.x, c.y + CLUSTER_RADIUS * 0.8 * scale + 0.2, c.z).project(camera);
+      const x = ((projected.x + 1) / 2) * width;
+      const y = ((1 - projected.y) / 2) * height;
+      el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) translate(-50%, -50%)`;
+      el.style.opacity = labelOpacity.toFixed(3);
     });
   });
 
@@ -260,44 +307,40 @@ function Constellation({ progress, visible, tier }: Omit<ConstellationSceneProps
       <lineSegments geometry={interGeo} material={interMat} />
       <lineSegments geometry={intraGeo} material={intraMat} />
       <points geometry={pointsGeo} material={pointMat} />
-      {CLUSTERS.map((c, i) => (
-        <Html
-          key={c.label}
-          position={[c.center.x, c.center.y + 1.3, c.center.z]}
-          center
-          zIndexRange={[1, 0]}
-          style={{ pointerEvents: "none" }}
-        >
-          <div
-            ref={(el) => {
-              labelRefs.current[i] = el;
-            }}
-            className="type-label whitespace-nowrap text-accent"
-            style={{ opacity: 0 }}
-          >
-            …/{c.label}…
-          </div>
-        </Html>
-      ))}
     </group>
   );
 }
 
 export default function ConstellationScene({ progress, visible, tier, active }: ConstellationSceneProps) {
+  const labels = useRef<Array<HTMLDivElement | null>>([]);
   return (
-    <Canvas
-      dpr={[1, 1.5]}
-      frameloop={active ? "always" : "never"}
-      camera={{ position: [0, 0, 7], fov: 50 }}
-      gl={{ antialias: tier === "high", alpha: true, powerPreference: "high-performance" }}
-      style={{ pointerEvents: "none" }}
-    >
-      <Constellation progress={progress} visible={visible} tier={tier} />
-      {tier === "high" && (
-        <EffectComposer multisampling={0}>
-          <Bloom intensity={0.55} luminanceThreshold={0.2} luminanceSmoothing={0.4} mipmapBlur radius={0.6} />
-        </EffectComposer>
-      )}
-    </Canvas>
+    <div className="absolute inset-0">
+      <Canvas
+        dpr={[1, 1.5]}
+        frameloop={active ? "always" : "never"}
+        camera={{ position: [0, 0, CAMERA_Z], fov: FOV }}
+        gl={{ antialias: tier === "high", alpha: true, powerPreference: "high-performance" }}
+        style={{ pointerEvents: "none" }}
+      >
+        <Constellation progress={progress} visible={visible} tier={tier} labels={labels} />
+        {tier === "high" && (
+          <EffectComposer multisampling={0}>
+            <Bloom intensity={0.55} luminanceThreshold={0.2} luminanceSmoothing={0.4} mipmapBlur radius={0.6} />
+          </EffectComposer>
+        )}
+      </Canvas>
+      {CLUSTER_LABELS.map((label, i) => (
+        <div
+          key={label}
+          ref={(el) => {
+            labels.current[i] = el;
+          }}
+          className="type-label pointer-events-none absolute top-0 left-0 whitespace-nowrap text-accent will-change-transform"
+          style={{ opacity: 0 }}
+        >
+          …/{label}…
+        </div>
+      ))}
+    </div>
   );
 }
